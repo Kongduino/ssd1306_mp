@@ -6,6 +6,7 @@ Tested on an [Elecfreaks Wukong 2040](https://shop.elecfreaks.com/products/elecf
 
 ## Commands I added:
 
+* `rotate`: Set this variable to `True` or `False` to rotate the display automatically.
 * `rotate180()`: self-explanatory I believe...
 * `drawCircle(self, cX, cY, radius)`: draws a circle centered on cX, cY.
 * `fillCircle(self, cX, cY, radius)`: draws a disk centered on cX, cY, in white (1, default) or black (0).

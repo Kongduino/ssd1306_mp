@@ -3,15 +3,6 @@
 from micropython import const
 import framebuf, math
 
-# Kongduino: 2023/01/08 Added rotate180
-# invert: used with rotate180. moves bits 0-7 to 7-0
-def invert(a):
-  c = 0
-  for i in range (0, 8):
-    b = (a>>i) & 1
-    c = ((c << 1) | b) & 0xff
-  return c
-
 # register definitions
 SET_CONTRAST = const(0x81)
 SET_ENTIRE_ON = const(0xA4)
@@ -34,6 +25,7 @@ SET_CHARGE_PUMP = const(0x8D)
 # Subclassing FrameBuffer provides support for graphics primitives
 # http://docs.micropython.org/en/latest/pyboard/library/framebuf.html
 class SSD1306(framebuf.FrameBuffer):
+  rotate = False
   def __init__(self, width, height, external_vcc):
     self.width = width
     self.height = height
@@ -94,6 +86,9 @@ class SSD1306(framebuf.FrameBuffer):
     self.write_cmd(SET_NORM_INV | (invert & 1))
 
   def show(self):
+    if self.rotate == True:
+      # rotate the buffer for display
+      self.rotate180()
     x0 = 0
     x1 = self.width - 1
     if self.width == 64:
@@ -107,13 +102,25 @@ class SSD1306(framebuf.FrameBuffer):
     self.write_cmd(0)
     self.write_cmd(self.pages - 1)
     self.write_data(self.buffer)
+    if self.rotate == True:
+      # rotate the buffer back to itsprevious state
+      self.rotate180()
   
+  # Kongduino: 2023/01/08 Added rotate180
+  # invert: used with rotate180. moves bits 0-7 to 7-0
+  def invertByte(self, a):
+    c = 0
+    for i in range (0, 8):
+      b = (a>>i) & 1
+      c = ((c << 1) | b) & 0xff
+    return c
+
   # rotates the framebuffer by 180°
   def rotate180(self):
     last = 1023
     for i in range(0, 512):
-      x = invert(self.buffer[i])
-      self.buffer[i] = invert(self.buffer[last])
+      x = self.invertByte(self.buffer[i])
+      self.buffer[i] = self.invertByte(self.buffer[last])
       self.buffer[last] = x
       last -= 1
 
