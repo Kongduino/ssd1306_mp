@@ -1,7 +1,7 @@
 # MicroPython SSD1306 OLED driver, I2C and SPI interfaces
 
 from micropython import const
-import framebuf
+import framebuf, math
 
 # Kongduino: 2023/01/08 Added rotate180
 # invert: used with rotate180. moves bits 0-7 to 7-0
@@ -116,6 +116,26 @@ class SSD1306(framebuf.FrameBuffer):
       self.buffer[i] = invert(self.buffer[last])
       self.buffer[last] = x
       last -= 1
+
+  def drawCircle(self, cX, cY, radius):
+    for i in range (0, 90):
+      d = i * 3.141592653 / 180
+      dX = math.cos(d)*radius
+      dY = math.sin(d)*radius
+      self.pixel(int(cX + dX), int(cY + dY), 1)
+      self.pixel(int(cX - dX), int(cY + dY), 1)
+      self.pixel(int(cX + dX), int(cY - dY), 1)
+      self.pixel(int(cX - dX), int(cY - dY), 1)
+    self.show()
+
+  def fillCircle(self, cX, cY, radius, clr = 1):
+    for i in range (0, 90):
+      d = i * 3.141592653 / 180
+      dX = math.cos(d)*radius
+      dY = math.sin(d)*radius
+      self.hline(int(cX - dX), int(cY + dY), int(dX * 2)+1, clr)
+      self.hline(int(cX - dX), int(cY - dY), int(dX * 2)+1, clr)
+    self.show()
 
 class SSD1306_I2C(SSD1306):
   def __init__(self, width, height, i2c, addr=0x3C, external_vcc=False):
