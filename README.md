@@ -10,5 +10,9 @@ Tested on an [Elecfreaks Wukong 2040]https://shop.elecfreaks.com/products/elecfr
 * `drawCircle(self, cX, cY, radius)`: draws a circle centered on cX, cY.
 * `fillCircle(self, cX, cY, radius)`: draws a disk centered on cX, cY, in white (1, default) or black (0).
 
+## Timer
+
+I am using at the end of the current demo a `Timer` object to display an animation that runs on its own. I need to update the demo GIF, but see for yourself.
+
 
 ![demo](demo.gif)
