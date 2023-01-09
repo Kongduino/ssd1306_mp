@@ -12,7 +12,7 @@ Tested on an [Elecfreaks Wukong 2040]https://shop.elecfreaks.com/products/elecfr
 
 ## Timer
 
-I am using at the end of the current demo a `Timer` object to display an animation that runs on its own. I need to update the demo GIF, but see for yourself.
+I am using at the end of the current demo a `Timer` object to display an animation that runs on its own. I updated the demo GIF, see for yourself. The animation keeps running, although the program ended.
 
 
 ![demo](demo.gif)
