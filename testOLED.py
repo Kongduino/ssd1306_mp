@@ -1,6 +1,7 @@
 import machine
 import time
 from ssd1306 import SSD1306_I2C, invert
+from machine import Timer
 
 def centerText(screen, txt, py):
   px = int((128-(len(txt)*8))/2)
@@ -51,6 +52,7 @@ for i in range(0, 128, 3):
 time.sleep(2)
 
 oled.fill(0)
+oled.show()
 oled.fill_rect(0, 16, 32, 48, 1)
 oled.fill_rect(2, 18, 28, 44, 0)
 oled.vline(9, 24, 38, 1)
@@ -70,15 +72,33 @@ oled.show()
 oled.fill(0)
 oled.drawCircle(64, 32, 15)
 oled.show()
-oled.fillCircle(64, 32, 12)
+time.sleep(0.5)
+clr = 1
+rd = 12
+for i in range(0, 5):
+  oled.fillCircle(64, 32, rd, clr)
+  oled.show()
+  time.sleep(0.5)
+  clr = 1 - clr
+  rd -= 3
+
+clr = 1
+maxrd = 9
+rd = maxrd
+space = 2
+oled.fill(0)
 oled.show()
-oled.fillCircle(64, 32, 10, 0)
-oled.show()
-oled.fillCircle(64, 32, 8)
-oled.show()
-oled.fillCircle(64, 32, 6, 0)
-oled.show()
-oled.fillCircle(64, 32, 4)
-oled.show()
-oled.fillCircle(64, 32, 2, 0)
-oled.show()
+
+def drc(timer):
+  global clr, rd, maxrd, oled, space
+  oled.fillCircle(15, 32, rd, clr)
+  if clr == 1:
+    oled.drawCircle(15, 32, rd + space, clr)
+  clr = 1 - clr
+  if clr == 1:
+    rd -= space
+    if rd < 3:
+      rd = maxrd
+  oled.show()
+
+timer = Timer(period=500, mode = Timer.PERIODIC, callback=drc)

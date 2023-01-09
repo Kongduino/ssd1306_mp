@@ -117,15 +117,17 @@ class SSD1306(framebuf.FrameBuffer):
       self.buffer[last] = x
       last -= 1
 
-  def drawCircle(self, cX, cY, radius):
+  def drawCircle(self, cX, cY, radius, clr = 1):
     for i in range (0, 90):
+      # degrees to radian
       d = i * 3.141592653 / 180
       dX = math.cos(d)*radius
       dY = math.sin(d)*radius
-      self.pixel(int(cX + dX), int(cY + dY), 1)
-      self.pixel(int(cX - dX), int(cY + dY), 1)
-      self.pixel(int(cX + dX), int(cY - dY), 1)
-      self.pixel(int(cX - dX), int(cY - dY), 1)
+      # draw 4 quarters at once
+      self.pixel(int(cX + dX), int(cY + dY), clr)
+      self.pixel(int(cX - dX), int(cY + dY), clr)
+      self.pixel(int(cX + dX), int(cY - dY), clr)
+      self.pixel(int(cX - dX), int(cY - dY), clr)
     self.show()
 
   def fillCircle(self, cX, cY, radius, clr = 1):
@@ -153,7 +155,6 @@ class SSD1306_I2C(SSD1306):
   def write_data(self, buf):
     self.write_list[1] = buf
     self.i2c.writevto(self.addr, self.write_list)
-
 
 class SSD1306_SPI(SSD1306):
   def __init__(self, width, height, spi, dc, res, cs, external_vcc=False):
