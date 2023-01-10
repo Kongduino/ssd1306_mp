@@ -125,11 +125,16 @@ class SSD1306(framebuf.FrameBuffer):
       last -= 1
 
   def drawCircle(self, cX, cY, radius, clr = 1):
+    self.drawOval(cX, cY, radius, radius, clr)
+
+  def drawOval(self, cX, cY, rX, rY = 0, clr = 1):
+    if rY == 0:
+      rY = rX
     for i in range (0, 90):
       # degrees to radian
       d = i * 3.141592653 / 180
-      dX = math.cos(d)*radius
-      dY = math.sin(d)*radius
+      dX = math.cos(d)*rX
+      dY = math.sin(d)*rY
       # draw 4 quarters at once
       self.pixel(int(cX + dX), int(cY + dY), clr)
       self.pixel(int(cX - dX), int(cY + dY), clr)
@@ -138,10 +143,15 @@ class SSD1306(framebuf.FrameBuffer):
     self.show()
 
   def fillCircle(self, cX, cY, radius, clr = 1):
+    self.fillOval(cX, cY, radius, radius, clr)
+
+  def fillOval(self, cX, cY, rX, rY = 0, clr = 1):
+    if rY == 0:
+      rY = rX
     for i in range (0, 90):
       d = i * 3.141592653 / 180
-      dX = math.cos(d)*radius
-      dY = math.sin(d)*radius
+      dX = math.cos(d)*rX
+      dY = math.sin(d)*rY
       self.hline(int(cX - dX), int(cY + dY), int(dX * 2)+1, clr)
       self.hline(int(cX - dX), int(cY - dY), int(dX * 2)+1, clr)
     self.show()

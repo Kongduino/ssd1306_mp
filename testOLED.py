@@ -1,199 +1,113 @@
-# MicroPython SSD1306 OLED driver, I2C and SPI interfaces
+import machine
+import time
+from ssd1306 import SSD1306_I2C
+from machine import Timer
 
-from micropython import const
-import framebuf, math
+def centerText(screen, txt, py):
+  px = int((128-(len(txt)*8))/2)
+  screen.text(txt, px, py)
 
-# register definitions
-SET_CONTRAST = const(0x81)
-SET_ENTIRE_ON = const(0xA4)
-SET_NORM_INV = const(0xA6)
-SET_DISP = const(0xAE)
-SET_MEM_ADDR = const(0x20)
-SET_COL_ADDR = const(0x21)
-SET_PAGE_ADDR = const(0x22)
-SET_DISP_START_LINE = const(0x40)
-SET_SEG_REMAP = const(0xA0)
-SET_MUX_RATIO = const(0xA8)
-SET_COM_OUT_DIR = const(0xC0)
-SET_DISP_OFFSET = const(0xD3)
-SET_COM_PIN_CFG = const(0xDA)
-SET_DISP_CLK_DIV = const(0xD5)
-SET_PRECHARGE = const(0xD9)
-SET_VCOM_DESEL = const(0xDB)
-SET_CHARGE_PUMP = const(0x8D)
+i2c = machine.I2C(sda=machine.Pin(16), scl=machine.Pin(17), id=0)
+oled = SSD1306_I2C(128, 64, i2c)
+oled.fill(1)
+oled.show()
+time.sleep(1)
+oled.fill(0)
+oled.show()
 
-# Subclassing FrameBuffer provides support for graphics primitives
-# http://docs.micropython.org/en/latest/pyboard/library/framebuf.html
-class SSD1306(framebuf.FrameBuffer):
-  rotate = False
-  def __init__(self, width, height, external_vcc):
-    self.width = width
-    self.height = height
-    self.external_vcc = external_vcc
-    self.pages = self.height // 8
-    self.buffer = bytearray(self.pages * self.width)
-    super().__init__(self.buffer, self.width, self.height, framebuf.MONO_VLSB)
-    self.init_display()
+oled.text('Hello', 1, 4)
+oled.show()
+time.sleep(0.5)
+oled.text('World!', 45, 4)
+oled.show()
+time.sleep(1)
+oled.poweroff()
+time.sleep(1)
+oled.poweron()
+time.sleep(1)
+oled.invert(1)
+time.sleep(1)
+oled.invert(0)
+time.sleep(1)
+for i in range(0, 256, 16):
+  oled.fill_rect(0, 50, 128, 63, 0)
+  oled.text(f'Contrast {i}', 0, 50)
+  oled.show()
+  oled.contrast(i)
+  time.sleep(0.1)
+oled.fill_rect(0, 50, 128, 63, 0)
+oled.text(f'Contrast 255', 0, 50)
+oled.show()
+oled.contrast(255)
+time.sleep(1)
 
-  def init_display(self):
-    for cmd in (
-      SET_DISP | 0x00,  # off
-      # address setting
-      SET_MEM_ADDR,
-      0x00,  # horizontal
-      # resolution and layout
-      SET_DISP_START_LINE | 0x00,
-      SET_SEG_REMAP | 0x01,  # column addr 127 mapped to SEG0
-      SET_MUX_RATIO,
-      self.height - 1,
-      SET_COM_OUT_DIR | 0x08,  # scan from COM[N] to COM0
-      SET_DISP_OFFSET,
-      0x00,
-      SET_COM_PIN_CFG,
-      0x02 if self.width > 2 * self.height else 0x12,
-      # timing and driving scheme
-      SET_DISP_CLK_DIV,
-      0x80,
-      SET_PRECHARGE,
-      0x22 if self.external_vcc else 0xF1,
-      SET_VCOM_DESEL,
-      0x30,  # 0.83*Vcc
-      # display
-      SET_CONTRAST,
-      0xFF,  # maximum
-      SET_ENTIRE_ON,  # output follows RAM contents
-      SET_NORM_INV,  # not inverted
-      # charge pump
-      SET_CHARGE_PUMP,
-      0x10 if self.external_vcc else 0x14,
-      SET_DISP | 0x01,
-    ):  # on
-      self.write_cmd(cmd)
-    self.fill(0)
-    self.show()
+oled.fill(0)
+centerText(oled, "LINES", 5)
+oled.show()
+for i in range(0, 128, 3):
+  oled.line(i, 16, 127-i, 63, 1)
+  if (i / 2) > 15 and i % 2 == 0:
+    oled.line(0, int(i/2), 127, 63 - int(i / 2) + 16, 1)
+  oled.show()
+time.sleep(2)
 
-  def poweroff(self):
-    self.write_cmd(SET_DISP | 0x00)
+oled.fill(0)
+oled.show()
+oled.fill_rect(0, 16, 32, 48, 1)
+oled.fill_rect(2, 18, 28, 44, 0)
+oled.vline(9, 24, 38, 1)
+oled.vline(16, 18, 38, 1)
+oled.vline(23, 24, 36, 1)
+oled.fill_rect(26, 56, 2, 4, 1)
+oled.text('MicroPython', 40, 16, 1)
+oled.text('SSD1306', 40, 28, 1)
+oled.text('OLED 128x64', 40, 40, 1)
+oled.show()
+time.sleep(2)
+#oled.rotate180()
+oled.rotate=True
+oled.show()
+time.sleep(2)
+#oled.rotate180()
+oled.rotate=False
+oled.show()
+time.sleep(1)
+oled.fill(0)
+oled.drawCircle(64, 32, 15)
+oled.show()
+time.sleep(0.5)
+clr = 1
+rd = 15
+for i in range(0, 5):
+  oled.fillOval(64, 32, rd, rd-2, clr)
+  oled.show()
+  time.sleep(0.5)
+  clr = 1 - clr
+  rd -= 3
 
-  def poweron(self):
-    self.write_cmd(SET_DISP | 0x01)
+clr = 1
+maxrd = 9
+rd = maxrd
+space = 2
+oled.fill(0)
+oled.show()
 
-  def contrast(self, contrast):
-    self.write_cmd(SET_CONTRAST)
-    self.write_cmd(contrast)
+def drc(timer):
+  global clr, rd, maxrd, oled, space
+  oled.fillCircle(15, 32, rd, clr)
+  if clr == 1:
+    oled.drawCircle(15, 32, rd + space, clr)
+  clr = 1 - clr
+  if clr == 1:
+    rd -= space
+    if rd < 3:
+      rd = maxrd
+  oled.show()
 
-  def invert(self, invert):
-    self.write_cmd(SET_NORM_INV | (invert & 1))
-
-  def show(self):
-    if self.rotate == True:
-      # rotate the buffer for display
-      self.rotate180()
-    x0 = 0
-    x1 = self.width - 1
-    if self.width == 64:
-      # displays with width of 64 pixels are shifted by 32
-      x0 += 32
-      x1 += 32
-    self.write_cmd(SET_COL_ADDR)
-    self.write_cmd(x0)
-    self.write_cmd(x1)
-    self.write_cmd(SET_PAGE_ADDR)
-    self.write_cmd(0)
-    self.write_cmd(self.pages - 1)
-    self.write_data(self.buffer)
-    if self.rotate == True:
-      # rotate the buffer back to itsprevious state
-      self.rotate180()
-  
-  # Kongduino: 2023/01/08 Added rotate180
-  # invert: used with rotate180. moves bits 0-7 to 7-0
-  def invertByte(self, a):
-    c = 0
-    for i in range (0, 8):
-      b = (a>>i) & 1
-      c = ((c << 1) | b) & 0xff
-    return c
-
-  # rotates the framebuffer by 180°
-  def rotate180(self):
-    last = 1023
-    for i in range(0, 512):
-      x = self.invertByte(self.buffer[i])
-      self.buffer[i] = self.invertByte(self.buffer[last])
-      self.buffer[last] = x
-      last -= 1
-
-  def drawCircle(self, cX, cY, radius, clr = 1):
-    for i in range (0, 90):
-      # degrees to radian
-      d = i * 3.141592653 / 180
-      dX = math.cos(d)*radius
-      dY = math.sin(d)*radius
-      # draw 4 quarters at once
-      self.pixel(int(cX + dX), int(cY + dY), clr)
-      self.pixel(int(cX - dX), int(cY + dY), clr)
-      self.pixel(int(cX + dX), int(cY - dY), clr)
-      self.pixel(int(cX - dX), int(cY - dY), clr)
-    self.show()
-
-  def fillCircle(self, cX, cY, radius, clr = 1):
-    for i in range (0, 90):
-      d = i * 3.141592653 / 180
-      dX = math.cos(d)*radius
-      dY = math.sin(d)*radius
-      self.hline(int(cX - dX), int(cY + dY), int(dX * 2)+1, clr)
-      self.hline(int(cX - dX), int(cY - dY), int(dX * 2)+1, clr)
-    self.show()
-
-class SSD1306_I2C(SSD1306):
-  def __init__(self, width, height, i2c, addr=0x3C, external_vcc=False):
-    self.i2c = i2c
-    self.addr = addr
-    self.temp = bytearray(2)
-    self.write_list = [b"\x40", None]  # Co=0, D/C#=1
-    super().__init__(width, height, external_vcc)
-
-  def write_cmd(self, cmd):
-    self.temp[0] = 0x80  # Co=1, D/C#=0
-    self.temp[1] = cmd
-    self.i2c.writeto(self.addr, self.temp)
-
-  def write_data(self, buf):
-    self.write_list[1] = buf
-    self.i2c.writevto(self.addr, self.write_list)
-
-class SSD1306_SPI(SSD1306):
-  def __init__(self, width, height, spi, dc, res, cs, external_vcc=False):
-    self.rate = 10 * 1024 * 1024
-    dc.init(dc.OUT, value=0)
-    res.init(res.OUT, value=0)
-    cs.init(cs.OUT, value=1)
-    self.spi = spi
-    self.dc = dc
-    self.res = res
-    self.cs = cs
-    import time
-
-    self.res(1)
-    time.sleep_ms(1)
-    self.res(0)
-    time.sleep_ms(10)
-    self.res(1)
-    super().__init__(width, height, external_vcc)
-
-  def write_cmd(self, cmd):
-    self.spi.init(baudrate=self.rate, polarity=0, phase=0)
-    self.cs(1)
-    self.dc(0)
-    self.cs(0)
-    self.spi.write(bytearray([cmd]))
-    self.cs(1)
-
-  def write_data(self, buf):
-    self.spi.init(baudrate=self.rate, polarity=0, phase=0)
-    self.cs(1)
-    self.dc(1)
-    self.cs(0)
-    self.spi.write(buf)
-    self.cs(1)
+timer = Timer(period=500, mode = Timer.PERIODIC, callback=drc)
+rd0 = 24
+for i in range(0, 5):
+  oled.drawOval(64, 38, rd0, rd0-4, 1)
+  rd0 -= 4
+  oled.show()
+  time.sleep(0.75)
