@@ -1,5 +1,4 @@
-import machine
-import time
+import machine, random, time
 from ssd1306 import SSD1306_I2C
 from machine import Timer
 
@@ -49,6 +48,24 @@ for i in range(0, 128, 3):
   if (i / 2) > 15 and i % 2 == 0:
     oled.line(0, int(i/2), 127, 63 - int(i / 2) + 16, 1)
   oled.show()
+time.sleep(2)
+
+oled.fill(0)
+lines = []
+for i in range(0, 100):
+  lines.append(random.randrange(128))
+  lines.append(random.randrange(64))
+oled.drawConnectedLines(lines)
+oled.show()
+time.sleep(2)
+
+oled.fill(0)
+lines = []
+for i in range(0, 100):
+  lines.append(random.randrange(128))
+  lines.append(random.randrange(64))
+oled.drawLines(lines)
+oled.show()
 time.sleep(2)
 
 oled.fill(0)

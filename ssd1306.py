@@ -124,6 +124,23 @@ class SSD1306(framebuf.FrameBuffer):
       self.buffer[last] = x
       last -= 1
 
+  def drawLines(self, lines, clr = 1):
+    j = len(lines)
+    if j%4 > 1:
+      return # I need 2 pairs of 2 points per
+    j -= 4
+    for i in range(0, j, 4):
+      self.line(lines[i], lines[i+1], lines[i+2], lines[i+3], clr)
+
+  def drawConnectedLines(self, lines, clr = 1):
+    j = len(lines)
+    if j%2 == 1:
+      j -= 3
+    else:
+      j -= 2
+    for i in range(0, j, 2):
+      self.line(lines[i], lines[i+1], lines[i+2], lines[i+3], clr)
+
   def drawCircle(self, cX, cY, radius, clr = 1):
     self.drawOval(cX, cY, radius, radius, clr)
 
@@ -140,7 +157,6 @@ class SSD1306(framebuf.FrameBuffer):
       self.pixel(int(cX - dX), int(cY + dY), clr)
       self.pixel(int(cX + dX), int(cY - dY), clr)
       self.pixel(int(cX - dX), int(cY - dY), clr)
-    self.show()
 
   def fillCircle(self, cX, cY, radius, clr = 1):
     self.fillOval(cX, cY, radius, radius, clr)
@@ -154,7 +170,55 @@ class SSD1306(framebuf.FrameBuffer):
       dY = math.sin(d)*rY
       self.hline(int(cX - dX), int(cY + dY), int(dX * 2)+1, clr)
       self.hline(int(cX - dX), int(cY - dY), int(dX * 2)+1, clr)
-    self.show()
+
+  def floodFill(self, i, j, oldColor=0, newColor=1):
+    curX = i
+    curY = j
+    while curY < self.height:
+      goOn = False
+      bump = i
+      while bump > 0:
+        bump -=1
+        if self.pixel(bump, curY) == newColor:
+          break
+      self.hline(bump, curY, (curX-bump+1), newColor)
+      if curY < self.height-1:
+        for i in range(bump, curX):
+          if self.pixel(i, curY+1) == oldColor:
+            goOn = True
+            break
+      bump = i
+      while bump < self.width-1:
+        bump +=1
+        if self.pixel(bump, curY) == newColor:
+          break
+      self.hline(curX, curY, (bump-curX+1), newColor)
+      if goOn == False:
+        break
+      curY += 1
+    curY = j-1
+    while curY > -1:
+      goOn = False
+      bump = i
+      while bump > 0:
+        bump -=1
+        if self.pixel(bump, curY) == newColor:
+          break
+      self.hline(bump, curY, (curX-bump+1), newColor)
+      if curY > 0:
+        for i in range(bump, curX):
+          if self.pixel(i, curY-1) == oldColor:
+            goOn = True
+            break
+      bump = i
+      while bump < self.width-1:
+        bump +=1
+        if self.pixel(bump, curY) == newColor:
+          break
+      self.hline(curX, curY, (bump-curX+1), newColor)
+      if goOn == False:
+        break
+      curY -= 1
 
 class SSD1306_I2C(SSD1306):
   def __init__(self, width, height, i2c, addr=0x3C, external_vcc=False):
